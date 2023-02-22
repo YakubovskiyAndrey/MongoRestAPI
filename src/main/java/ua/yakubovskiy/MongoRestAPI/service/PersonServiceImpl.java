@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ua.yakubovskiy.MongoRestAPI.data.Person;
 import ua.yakubovskiy.MongoRestAPI.dto.PersonSaveDto;
+import ua.yakubovskiy.MongoRestAPI.exception.FailedDownloadException;
 import ua.yakubovskiy.MongoRestAPI.repository.PersonRepository;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,7 +45,7 @@ public class PersonServiceImpl implements PersonService{
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            new FailedDownloadException("Failed to load data");
         }
     }
 
@@ -53,11 +54,44 @@ public class PersonServiceImpl implements PersonService{
         data.setLastName(dto.getLastName());
         data.setDateOfBirth(dto.getDateOfBirth());
         data.setLastJobTitle(dto.getLastJobTitle());
-        data.setId(dto.getId());
         data.setPatronymic(dto.getPatronymic());
         data.setLastWorkPlace(dto.getLastWorkplace());
         data.setDeclarations(dto.getDeclarations());
+        data.setRelatedCompanies(dto.getRelatedCompanies());
+        data.setRelatedPeople(dto.getRelatedPersons());
         data.setPep(dto.isPep());
+        data.setPatronymicEn(dto.getPatronymicEn());
+        data.setUrl(dto.getUrl());
+        data.setAlsoKnownAsEn(dto.getAlsoKnownAsEn());
+        data.setAlsoKnownAsUk(dto.getAlsoKnownAsUk());
+        data.setCityOfBirthEn(dto.getCityOfBirthEn());
+        data.setCityOfBirthUk(dto.getCityOfBirthUk());
+        data.setDied(dto.isDied());
+        data.setFirstNameEn(dto.getFirstNameEn());
+        data.setLastNameEn(dto.getLastNameEn());
+        data.setFullNameEn(dto.getFullNameEn());
+        data.setFullName(dto.getFullName());
+        data.setLastWorkplaceEn(dto.getLastWorkplaceEn());
+        data.setNames(dto.getNames());
+        data.setPhoto(dto.getPhoto());
+        data.setReasonOfTermination(dto.getReasonOfTermination());
+        data.setReasonOfTerminationEn(dto.getReasonOfTerminationEn());
+        data.setReputationAssetsEn(dto.getReputationAssetsEn());
+        data.setReputationAssetsUk(dto.getReputationAssetsUk());
+        data.setReputationConvictionsEn(dto.getReputationConvictionsEn());
+        data.setReputationConvictionsUk(dto.getReputationConvictionsUk());
+        data.setReputationManhuntEn(dto.getReputationManhuntEn());
+        data.setReputationManhuntUk(dto.getReputationManhuntUk());
+        data.setReputationSanctionsEn(dto.getReputationSanctionsEn());
+        data.setReputationSanctionsUk(dto.getReputationSanctionsUk());
+        data.setReputationCrimesEn(dto.getReputationCrimesEn());
+        data.setReputationCrimesUk(dto.getReputationCrimesUk());
+        data.setLastJobTitleEn(dto.getLastJobTitleEn());
+        data.setTerminationDateHuman(dto.getTerminationDateHuman());
+        data.setWikiEn(dto.getWikiEn());
+        data.setWikiUk(dto.getWikiUk());
+        data.setTypeOfOfficialEn(dto.getTypeOfOfficialEn());
+        data.setTypeOfOfficial(dto.getTypeOfOfficial());
     }
 
     @Override

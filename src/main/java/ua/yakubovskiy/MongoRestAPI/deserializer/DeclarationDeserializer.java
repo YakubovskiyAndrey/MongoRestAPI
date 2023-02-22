@@ -9,7 +9,6 @@ import ua.yakubovskiy.MongoRestAPI.data.Declaration;
 import java.io.IOException;
 
 public class DeclarationDeserializer extends JsonDeserializer<Declaration> {
-
     @Override
     public Declaration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
@@ -17,7 +16,7 @@ public class DeclarationDeserializer extends JsonDeserializer<Declaration> {
         Declaration declaration = new Declaration();
 
         if(node.get("income") != null) {
-            declaration.setIncome(node.get("income").asDouble());
+            declaration.setIncome(node.get("income").asDouble(0.0));
         }
         if(node.get("family_income") != null) {
             declaration.setFamilyIncome(node.get("family_income").asDouble());

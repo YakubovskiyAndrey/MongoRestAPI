@@ -13,9 +13,6 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PersonSaveDto {
 
-    @JsonProperty("_id")
-    private String id;
-
     @JsonProperty("last_job_title")
     private String lastJobTitle;
 
@@ -61,7 +58,7 @@ public class PersonSaveDto {
     @JsonProperty("reputation_sanctions_uk")
     private String reputationSanctionsUk;
 
-   // @JsonProperty("related_companies")
+    @JsonProperty("related_companies")
     private List<RelatedCompany> relatedCompanies;
 
     @JsonProperty("date_of_birth")
@@ -76,7 +73,7 @@ public class PersonSaveDto {
     @JsonProperty("reputation_assets_en")
     private String reputationAssetsEn;
 
-   // @JsonProperty("related_persons")
+    @JsonProperty("related_persons")
     private List<RelatedPerson> relatedPersons;
 
     @JsonProperty("reputation_convictions_uk")

@@ -8,10 +8,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import ua.yakubovskiy.MongoRestAPI.dto.PersonDetailsDto;
-import ua.yakubovskiy.MongoRestAPI.dto.PersonRequestDetailsDto;
 import ua.yakubovskiy.MongoRestAPI.dto.RestResponse;
+import ua.yakubovskiy.MongoRestAPI.dto.RequestPersonDetailsDto;
+import ua.yakubovskiy.MongoRestAPI.dto.PopularNameDto;
+import ua.yakubovskiy.MongoRestAPI.dto.PersonDetailsDto;
 import ua.yakubovskiy.MongoRestAPI.service.PersonService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/persons")
@@ -27,8 +30,13 @@ public class PersonController {
     }
 
     @GetMapping("/_searchByFullName")
-    public PersonDetailsDto getPeopleByFullName(@RequestBody PersonRequestDetailsDto dto) {
-        return null;
+    public List<PersonDetailsDto> getPeopleByFullName(@RequestBody RequestPersonDetailsDto dto) {
+        return personService.searchByFullName(dto);
+    }
+
+    @GetMapping("/_searchPopularNames")
+    public List<PopularNameDto> getPopularNames(@RequestParam int searchQuantity) {
+        return personService.searchPopularNames(searchQuantity);
     }
 
 }

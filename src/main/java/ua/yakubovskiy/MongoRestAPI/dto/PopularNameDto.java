@@ -3,12 +3,10 @@ package ua.yakubovskiy.MongoRestAPI.dto;
 import lombok.Getter;
 
 @Getter
-public class PersonRequestDetailsDto {
+public class PopularNameDto {
 
     private String firstName;
 
-    private String lastName;
-
-    private String patronymic;
+    private int count;
 
 }

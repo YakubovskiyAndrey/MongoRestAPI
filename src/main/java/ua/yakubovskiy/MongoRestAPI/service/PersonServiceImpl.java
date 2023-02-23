@@ -8,11 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ua.yakubovskiy.MongoRestAPI.data.Person;
-import ua.yakubovskiy.MongoRestAPI.dto.PersonSaveDto;
+import ua.yakubovskiy.MongoRestAPI.dto.*;
 import ua.yakubovskiy.MongoRestAPI.exception.FailedDownloadException;
 import ua.yakubovskiy.MongoRestAPI.repository.PersonRepository;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -45,7 +46,7 @@ public class PersonServiceImpl implements PersonService{
                 });
             }
         } catch (Exception e) {
-            new FailedDownloadException("Failed to load data");
+            throw new FailedDownloadException("Failed to load data. "+e.getMessage());
         }
     }
 
@@ -102,5 +103,30 @@ public class PersonServiceImpl implements PersonService{
     @Override
     public void deleteAll() {
         personRepository.deleteAll();
+    }
+
+    @Override
+    public List<PersonDetailsDto> searchByFullName(RequestPersonDetailsDto query) {
+        List<Person> people = personRepository.searchByFullName(query);
+        List<PersonDetailsDto> details = new ArrayList<>();
+        people.forEach(person -> details.add(convertToDetails(person)));
+        return details;
+    }
+
+    @Override
+    public List<PopularNameDto> searchPopularNames(int searchQuantity) {
+        return personRepository.searchPopularNames(searchQuantity);
+    }
+
+    private PersonDetailsDto convertToDetails(Person data) {
+        return PersonDetailsDto.builder()
+                .dateOfBirth(data.getDateOfBirth())
+                .firstName(data.getFirstName())
+                .lastName(data.getLastName())
+                .patronymic(data.getPatronymic())
+                .isPep(data.isPep())
+                .lastJobTitle(data.getLastJobTitle())
+                .lastWorkPlace(data.getLastWorkPlace())
+                .build();
     }
 }

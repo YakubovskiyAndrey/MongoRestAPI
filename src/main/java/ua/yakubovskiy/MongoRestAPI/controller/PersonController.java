@@ -26,7 +26,7 @@ public class PersonController {
     @PostMapping("/upload")
     private RestResponse uploadFile(@RequestParam("file") MultipartFile file) {
         personService.uploadFile(file);
-        return new RestResponse("Public persons have been successfully uploaded to the database");
+        return new RestResponse("Public persons have been successfully uploaded to database");
     }
 
     @GetMapping("/_searchByFullName")

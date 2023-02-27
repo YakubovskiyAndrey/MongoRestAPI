@@ -1,7 +1,6 @@
 package ua.yakubovskiy.MongoRestAPI.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import ua.yakubovskiy.MongoRestAPI.TestUtil;
 import ua.yakubovskiy.MongoRestAPI.MongoRestApiApplication;
 import ua.yakubovskiy.MongoRestAPI.data.Person;
 import ua.yakubovskiy.MongoRestAPI.dto.PersonDetailsDto;
+import ua.yakubovskiy.MongoRestAPI.dto.PopularNameDto;
 import ua.yakubovskiy.MongoRestAPI.dto.RestResponse;
 import ua.yakubovskiy.MongoRestAPI.repository.PersonRepository;
 
@@ -103,6 +103,44 @@ class PersonControllerTest {
         assertThat(resultDtoList.get(0).getFirstName()).isEqualTo(firstName);
         assertThat(resultDtoList.get(0).getLastName()).isEqualTo(lastName);
         assertThat(resultDtoList.get(0).getPatronymic()).isEqualTo(patronymic);
+    }
+
+    @Test
+    void testSearchPopularNames() throws Exception {
+
+        Person personIvan = new Person();
+        personIvan.setFirstName("Ivan");
+        personIvan.setLastName("Ivanov");
+        personIvan.setPatronymic("Ivanovich");
+        personIvan.setPep(true);
+        repository.save(personIvan);
+
+        Person personIvan2 = new Person();
+        personIvan2.setFirstName("Ivan");
+        personIvan2.setLastName("Ivanov");
+        personIvan2.setPatronymic("Ivanovich");
+        personIvan2.setPep(true);
+        repository.save(personIvan2);
+
+        Person personPetr = new Person();
+        personPetr.setFirstName("Petr");
+        personPetr.setLastName("Petrov");
+        personPetr.setPatronymic("Petrovich");
+        personPetr.setPep(true);
+        repository.save(personPetr);
+
+        MockHttpServletResponse response = mvc.perform(get("/api/persons/_searchPopularNames?searchQuantity=2")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        List<PopularNameDto> popularNameDtoList = TestUtil.parseJson(response.getContentAsString(), new TypeReference<>() {});
+
+        assertThat(popularNameDtoList.get(0).getFirstName()).isEqualTo("Ivan");
+        assertThat(popularNameDtoList.get(0).getCount()).isEqualTo(2);
+        assertThat(popularNameDtoList.get(1).getFirstName()).isEqualTo("Petr");
+        assertThat(popularNameDtoList.get(1).getCount()).isEqualTo(1);
     }
 
 }

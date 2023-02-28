@@ -8,9 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ua.yakubovskiy.MongoRestAPI.data.Person;
-import ua.yakubovskiy.MongoRestAPI.dto.*;
+import ua.yakubovskiy.MongoRestAPI.dto.PersonSaveDto;
+import ua.yakubovskiy.MongoRestAPI.dto.RequestPersonDetailsDto;
+import ua.yakubovskiy.MongoRestAPI.dto.PersonDetailsDto;
+import ua.yakubovskiy.MongoRestAPI.dto.PopularNameDto;
 import ua.yakubovskiy.MongoRestAPI.exception.FailedDownloadException;
 import ua.yakubovskiy.MongoRestAPI.repository.PersonRepository;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -22,23 +26,23 @@ import java.util.zip.ZipInputStream;
 @RequiredArgsConstructor
 public class PersonServiceImpl implements PersonService{
 
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
     private final PersonRepository personRepository;
 
     @Override
     @Transactional
     public void uploadFile(MultipartFile file) {
         deleteAll();
-        try(ZipInputStream zipInputStream = new ZipInputStream(file.getInputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream))) {
+        try (ZipInputStream zipInputStream = new ZipInputStream(file.getInputStream());
+             BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream))) {
             ZipEntry zipEntry = zipInputStream.getNextEntry();
             if (zipEntry != null && !zipEntry.isDirectory()) {
-                ObjectMapper jsonMapper = new ObjectMapper();
-                jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-                CollectionType javaType = jsonMapper.getTypeFactory()
+                CollectionType javaType = OBJECT_MAPPER.getTypeFactory()
                         .constructCollectionType(List.class, PersonSaveDto.class);
 
-                List<PersonSaveDto> personSaveDtoList = jsonMapper.readValue(reader, javaType);
+                List<PersonSaveDto> personSaveDtoList = OBJECT_MAPPER.readValue(reader, javaType);
                 personSaveDtoList.forEach(personSaveDto -> {
                     Person person = new Person();
                     updateDataFromDto(person, personSaveDto);
@@ -46,7 +50,7 @@ public class PersonServiceImpl implements PersonService{
                 });
             }
         } catch (Exception e) {
-            throw new FailedDownloadException("Failed to load data. "+e.getMessage());
+            throw new FailedDownloadException("Failed to load data. " + e.getMessage());
         }
     }
 

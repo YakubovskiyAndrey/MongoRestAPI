@@ -1,8 +1,10 @@
 package ua.yakubovskiy.MongoRestAPI.service;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +17,14 @@ import ua.yakubovskiy.MongoRestAPI.dto.PopularNameDto;
 import ua.yakubovskiy.MongoRestAPI.exception.FailedDownloadException;
 import ua.yakubovskiy.MongoRestAPI.repository.PersonRepository;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 @Service
 @RequiredArgsConstructor
@@ -34,23 +38,46 @@ public class PersonServiceImpl implements PersonService{
     @Transactional
     public void uploadFile(MultipartFile file) {
         deleteAll();
-        try (ZipInputStream zipInputStream = new ZipInputStream(file.getInputStream());
-             BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream))) {
-            ZipEntry zipEntry = zipInputStream.getNextEntry();
-            if (zipEntry != null && !zipEntry.isDirectory()) {
+        File fileTmp;
+        try {
+            fileTmp = File.createTempFile(file.getName(), ".zip");
+            file.transferTo(fileTmp);
+        } catch (IOException e) {
+            throw new FailedDownloadException("Failed to create temp file. " + e.getMessage());
+        }
 
-                CollectionType javaType = OBJECT_MAPPER.getTypeFactory()
-                        .constructCollectionType(List.class, PersonSaveDto.class);
-
-                List<PersonSaveDto> personSaveDtoList = OBJECT_MAPPER.readValue(reader, javaType);
-                personSaveDtoList.forEach(personSaveDto -> {
-                    Person person = new Person();
-                    updateDataFromDto(person, personSaveDto);
-                    createPerson(person);
-                });
+        try (ZipFile zipFile = new ZipFile(fileTmp)){
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry != null && !entry.isDirectory()) {
+                    try(InputStream in = zipFile.getInputStream(entry)) {
+                        parsePep(in);
+                    }
+                }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new FailedDownloadException("Failed to load data. " + e.getMessage());
+        }
+        fileTmp.deleteOnExit();
+    }
+
+    private void parsePep(InputStream in){
+        try (JsonParser jsonParser = OBJECT_MAPPER.getFactory().createParser(in)){
+
+            JavaType javaType = OBJECT_MAPPER.getTypeFactory()
+                    .constructType(PersonSaveDto.class);
+
+            if (jsonParser.nextToken() == JsonToken.START_ARRAY) {
+                while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+                    PersonSaveDto dto = OBJECT_MAPPER.readValue(jsonParser, javaType);
+                    Person person = new Person();
+                    updateDataFromDto(person, dto);
+                    createPerson(person);
+                }
+            }
+        } catch (IOException e) {
+            throw new FailedDownloadException("Failed to parse data. " + e.getMessage());
         }
     }
 
@@ -110,6 +137,7 @@ public class PersonServiceImpl implements PersonService{
     }
 
     @Override
+    @Transactional
     public List<PersonDetailsDto> searchByFullName(RequestPersonDetailsDto query) {
         List<Person> people = personRepository.searchByFullName(query);
         List<PersonDetailsDto> details = new ArrayList<>();
@@ -118,6 +146,7 @@ public class PersonServiceImpl implements PersonService{
     }
 
     @Override
+    @Transactional
     public List<PopularNameDto> searchPopularNames(int searchQuantity) {
         return personRepository.searchPopularNames(searchQuantity);
     }
